@@ -1,15 +1,17 @@
 const express = require('express')
-const cors = require('cors')
+// const cors = require('cors')
 const path = require('path')
+
 const app = express()
 
-const corsOptions = {
-    origin: 'http://localhost:5173'
-}
-app.use(cors(corsOptions))
+// const corsOptions = {
+//     origin: 'http://localhost:5173'
+// }
+// app.use(cors(corsOptions))
+
 app.use(express.json())
 
-app.use(express.static(path.join(__dirname, './../../Part_2/dist')))
+app.use(express.static(path.join(__dirname, 'dist')))
 
 let notes = [
     {
