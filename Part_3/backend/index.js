@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 // const cors = require('cors')
 const path = require('path')
+const Note = require('./models/notes')
 
 const app = express()
 
@@ -13,30 +15,14 @@ app.use(express.json())
 
 app.use(express.static(path.join(__dirname, 'dist')))
 
-let notes = [
-    {
-    id: "1",
-    content: "HTML is easy",
-    important: true
-  },
-  {
-    id: "2",
-    content: "Browser can execute only JavaScript",
-    important: false
-  },
-  {
-    id: "3",
-    content: "GET and POST are the most important methods of HTTP protocol",
-    important: true
-  }
-]
-
 app.get('/', (req, resp) => {
     resp.send('<h1>Hello Web!</h1>')
 })
 
 app.get('/api/notes', (req, resp) => {
-    resp.json(notes)
+    Note.find({}).then(notes => {
+        resp.json(notes)
+    })
 })
 
 app.get('/api/notes/:id', (req, resp) => {
@@ -87,7 +73,7 @@ app.post('/api/notes', (req, resp) => {
     resp.json(note)
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
 })
