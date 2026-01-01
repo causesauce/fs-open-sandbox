@@ -3,6 +3,7 @@ const express = require('express')
 // const cors = require('cors')
 const path = require('path')
 const Note = require('./models/notes')
+const morgan = require('morgan')
 
 const app = express()
 
@@ -15,6 +16,17 @@ app.use(express.json())
 
 app.use(express.static(path.join(__dirname, 'dist')))
 
+morgan.token('jsonBody', (req, resp) => {
+    if ((req.method === 'POST' || req.method === 'PUT') && req.body){
+        return JSON.stringify(req.body)
+    }
+})
+
+const morganFormat = 
+        ':method :url :status :res[content-length] - :response-time ms :jsonBody'
+
+app.use(morgan(morganFormat))
+
 app.get('/', (req, resp) => {
     resp.send('<h1>Hello Web!</h1>')
 })
@@ -25,35 +37,28 @@ app.get('/api/notes', (req, resp) => {
     })
 })
 
-app.get('/api/notes/:id', (req, resp) => {
+app.get('/api/notes/:id', (req, resp, next) => {
     const id = req.params.id
-    const note = notes.find(note => note.id === id)
-
-    if (note){
-        resp.json(note)
-    }
-    else{
-        resp.statusMessage = "no note found"
-        resp.status(404).end()
-    }
+    Note.findById(id).then(
+        note => {
+            if (note){
+                resp.json(note)
+            }
+            else{
+                resp.status(404).end()
+            }
+        })
+        .catch(error => next(error))
 })
 
-app.delete('/api/notes/:id', (req, resp) => {
+app.delete('/api/notes/:id', (req, resp, next) => {
     const id = req.params.id
-    notes = notes.filter(n => n.id !== id)
-    
-    resp.status(204).end()
+    Note.findByIdAndDelete(id)
+        .then(_ => resp.status(204))
+        .catch(err => next(err))
 })
 
-const generateId = () => {
-    const maxId = notes.length > 0
-        ? Math.max(...notes.map(n => Number(n.id)))
-        : 0
-
-    return String(maxId + 1)
-}
-
-app.post('/api/notes', (req, resp) => {
+app.post('/api/notes', (req, resp, next) => {
     const body = req.body
 
     if (!body.content){
@@ -62,16 +67,54 @@ app.post('/api/notes', (req, resp) => {
         })
     }
 
-    const note = {
+    const note = new Note({
         content: body.content,
         important: body.important || false,
-        id: generateId()
+    })
+
+    note.save()
+        .then(savedNote => resp.json(savedNote))
+        .catch(err => next(err))
+})
+
+app.put('/api/notes/:id', (req, resp, next) => {
+    const body = req.body;
+    const id = req.params.id;
+
+    Note.findById(id)
+        .then(note => {
+            if (!note){
+                return resp.status(404).end()
+            }
+
+            note.important = body.important;
+            note.content = body.content;
+
+            return note.save()
+                .then((updNote) => {
+                    resp.json(updNote)
+                })
+                .catch(err => next(err))
+        })
+})
+
+const unknownEndpoint = (req, resp) => {
+    resp.status(404).send({error: 'unknown endpoint'})
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (error, req, resp, next) => {
+    console.log(error.message)
+
+    if (error.name == 'CastError'){
+        return resp.status(400).send({ error: 'malformed id' })
     }
 
-    notes = notes.concat(note)
+    next(error)
+}
 
-    resp.json(note)
-})
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {

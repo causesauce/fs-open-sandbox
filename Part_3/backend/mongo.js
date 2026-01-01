@@ -1,38 +1,44 @@
 const mongoose = require('mongoose')
+require('dotenv').config()
+const Note = require('./models/notes')
 
-if (process.argv.length < 3){
-    console.log('give psswrd as argument')
-    process.exit(1)
-}
+Note.find({}).then(notes => console.log(JSON.stringify(notes, null, 2)))
 
-const password = process.argv[2]
+// if (process.argv.length < 3){
+//     console.log('no psswrd given as argument, returning...')
+//     return
+// }
 
-const url = 
-    `mongodb+srv://adrianchervinchuk1_db_user:${password}@cluster0.zwycskc.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0`
+//const password = process.argv[2]
 
-mongoose.set('strictQuery', false)
-mongoose.connect(url)
+//const url = 
+//    `mongodb+srv://adrianchervinchuk1_db_user:${password}@cluster0.zwycskc.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0`
 
-const noteSchema = new mongoose.Schema({
-    content: String,
-    important: Boolean
-})
+// const url = process.env.MONGODB_URI
 
-const Note = mongoose.model('Note', noteSchema)
+// mongoose.set('strictQuery', false)
+// mongoose.connect(url)
 
-const note = new Note({
-    content: 'WTF is unit testing in js',
-    important: false
-})
+// const noteSchema = new mongoose.Schema({
+//     content: String,
+//     important: Boolean
+// })
 
-note.save().then(res => {
-    console.log('note saved!')
-    // mongoose.connection.close()
-})
+// const Note = mongoose.model('Note', noteSchema)
 
-Note.find({important: false}).then(res => {
-    res.forEach(note => {
-        console.log(note)
-    })
-    mongoose.connection.close()
-})
+// const note = new Note({
+//     content: 'WTF is unit testing in js',
+//     important: false
+// })
+
+// note.save().then(res => {
+//     console.log('note saved!')
+//     // mongoose.connection.close()
+// })
+
+// Note.find({important: false}).then(res => {
+//     res.forEach(note => {
+//         console.log(note)
+//     })
+//     mongoose.connection.close()
+// })
