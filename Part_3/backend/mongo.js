@@ -1,4 +1,3 @@
-const mongoose = require('mongoose')
 require('dotenv').config()
 const Note = require('./models/notes')
 
@@ -11,7 +10,7 @@ Note.find({}).then(notes => console.log(JSON.stringify(notes, null, 2)))
 
 //const password = process.argv[2]
 
-//const url = 
+//const url =
 //    `mongodb+srv://adrianchervinchuk1_db_user:${password}@cluster0.zwycskc.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0`
 
 // const url = process.env.MONGODB_URI
